@@ -5,6 +5,13 @@ import 'package:flutter/widgets.dart';
 import 'package:mobile_number/sim_card.dart';
 import 'package:mobile_number/widget_lifecycle.dart';
 
+class MobileNumberModel {
+  String country;
+  String number;
+
+  MobileNumberModel({this.country, this.number});
+}
+
 class MobileNumber {
   static const MethodChannel _channel = const MethodChannel('mobile_number');
   static const EventChannel _phonePermissionEvent =
@@ -35,16 +42,18 @@ class MobileNumber {
     await _channel.invokeMethod('requestPhonePermission');
   }
 
-  static Future<String> get mobileNumber async {
+  static Future<MobileNumberModel> get mobileNumber async {
     final String simCardsJson = await _channel.invokeMethod('getMobileNumber');
     if (simCardsJson.isEmpty) {
-      return '';
+      return null;
     }
     List<SimCard> simCards = SimCard.parseSimCards(simCardsJson);
     if (simCards != null && simCards.isNotEmpty) {
-      return simCards[0].countryPhonePrefix + simCards[0].number;
+      final MobileNumberModel model = MobileNumberModel(
+          country: simCards[0].countryPhonePrefix, number: simCards[0].number);
+      return model;
     } else {
-      return '';
+      return null;
     }
   }
 
